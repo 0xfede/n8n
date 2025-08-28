@@ -5,10 +5,11 @@ import type {
 	assignableGlobalRoleSchema,
 	credentialSharingRoleSchema,
 	globalRoleSchema,
-	projectRoleSchema,
+	systemProjectRoleSchema,
 	roleNamespaceSchema,
 	teamRoleSchema,
 	workflowSharingRoleSchema,
+	assignableProjectRoleSchema,
 } from './schemas.ee';
 import { ALL_API_KEY_SCOPES } from './scope-information';
 
@@ -57,8 +58,8 @@ export type AssignableGlobalRole = z.infer<typeof assignableGlobalRoleSchema>;
 export type CredentialSharingRole = z.infer<typeof credentialSharingRoleSchema>;
 export type WorkflowSharingRole = z.infer<typeof workflowSharingRoleSchema>;
 export type TeamProjectRole = z.infer<typeof teamRoleSchema>;
-export type ProjectRole = z.infer<typeof projectRoleSchema>;
-export type CustomRole = string;
+export type ProjectRole = z.infer<typeof systemProjectRoleSchema>;
+export type AssignableProjectRole = z.infer<typeof assignableProjectRoleSchema>;
 
 /** Union of all possible role types in the system */
 export type AllRoleTypes = GlobalRole | ProjectRole | WorkflowSharingRole | CredentialSharingRole;

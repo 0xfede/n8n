@@ -1,15 +1,24 @@
-import type {
-	CredentialsEntity,
-	SharedCredentials,
-	SharedWorkflow,
-	User,
-	ListQueryDb,
-	ScopesField,
-	ProjectRelation,
+import {
+	type CredentialsEntity,
+	type SharedCredentials,
+	type SharedWorkflow,
+	type User,
+	type ListQueryDb,
+	type ScopesField,
+	type ProjectRelation,
+	GLOBAL_ADMIN_ROLE,
 } from '@n8n/db';
 import { Service } from '@n8n/di';
-import type { CustomRole, ProjectRole, Scope } from '@n8n/permissions';
-import { ALL_ROLES, combineScopes, getAuthPrincipalScopes, getRoleScopes } from '@n8n/permissions';
+import type { AssignableProjectRole, Scope } from '@n8n/permissions';
+import {
+	ALL_ROLES,
+	combineScopes,
+	getAuthPrincipalScopes,
+	getRoleScopes,
+	PROJECT_ADMIN_ROLE_SLUG,
+	PROJECT_EDITOR_ROLE_SLUG,
+	PROJECT_VIEWER_ROLE_SLUG,
+} from '@n8n/permissions';
 import { UnexpectedError } from 'n8n-workflow';
 
 import { License } from '@/license';
@@ -112,16 +121,16 @@ export class RoleService {
 		return [...scopesSet].sort();
 	}
 
-	isRoleLicensed(role: ProjectRole | CustomRole) {
+	isRoleLicensed(role: AssignableProjectRole) {
 		// TODO: move this info into FrontendSettings
 		switch (role) {
-			case 'project:admin':
+			case PROJECT_ADMIN_ROLE_SLUG:
 				return this.license.isProjectRoleAdminLicensed();
-			case 'project:editor':
+			case PROJECT_EDITOR_ROLE_SLUG:
 				return this.license.isProjectRoleEditorLicensed();
-			case 'project:viewer':
+			case PROJECT_VIEWER_ROLE_SLUG:
 				return this.license.isProjectRoleViewerLicensed();
-			case 'global:admin':
+			case GLOBAL_ADMIN_ROLE.slug:
 				return this.license.isAdvancedPermissionsLicensed();
 			default:
 				// TODO: handle custom roles licensing

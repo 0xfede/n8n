@@ -483,8 +483,8 @@ describe('Projects in Public API', () => {
 					relations: [
 						{
 							userId: member.id,
-							// role does not exist
-							role: 'project:boss',
+							// field that do not exist
+							invalidField: 'invalidValue',
 						},
 					],
 				};
@@ -499,8 +499,32 @@ describe('Projects in Public API', () => {
 				// ASSERT
 				expect(response.body).toHaveProperty(
 					'message',
-					"Invalid enum value. Expected 'project:admin' | 'project:editor' | 'project:viewer', received 'project:boss'",
+					"request/body/relations/0 must have required property 'role'",
 				);
+			});
+
+			it('should reject if the relations have a role that do not exist', async () => {
+				const owner = await createOwnerWithApiKey();
+				const member = await createMember();
+				const project = await createTeamProject('shared-project', owner);
+
+				const payload = {
+					relations: [
+						{
+							userId: member.id,
+							role: 'project:invalid-role',
+						},
+					],
+				};
+
+				const response = await testServer
+					.publicApiAgentFor(owner)
+					.post(`/projects/${project.id}/users`)
+					.send(payload)
+					.expect(400);
+
+				// TODO: update message once we properly validate role from database
+				expect(response.body.message).toContain('violates foreign key constraint');
 			});
 
 			it('should reject with 404 if no project found', async () => {
@@ -654,23 +678,24 @@ describe('Projects in Public API', () => {
 				testServer.license.enable('feat:projectRole:admin');
 			});
 
-			it("should reject with 400 if the payload can't be validated", async () => {
+			it('should reject with 400 if the role do not exist', async () => {
 				// ARRANGE
 				const owner = await createOwnerWithApiKey();
+				const member = await createMember();
+				const project = await createTeamProject('shared-project', owner);
+				await linkUserToProject(member, project, 'project:viewer');
 
 				// ACT
 				const response = await testServer
 					.publicApiAgentFor(owner)
-					.patch('/projects/1234/users/1235')
+					.patch(`/projects/${project.id}/users/${member.id}`)
 					// role does not exist
 					.send({ role: 'project:boss' })
 					.expect(400);
 
 				// ASSERT
-				expect(response.body).toHaveProperty(
-					'message',
-					"Invalid enum value. Expected 'project:admin' | 'project:editor' | 'project:viewer', received 'project:boss'",
-				);
+				// TODO: change message check once we properly validate that the role exists
+				expect(response.body.message).toContain('violates foreign key constraint');
 			});
 
 			it("should change a user's role in a project", async () => {
